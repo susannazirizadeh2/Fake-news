@@ -1,30 +1,21 @@
-# -*- coding: utf-8 -*-
-import click
-import logging
-from pathlib import Path
-from dotenv import find_dotenv, load_dotenv
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+import os
 
+path=os.path.join('data',"raw")
 
-@click.command()
-@click.argument('input_filepath', type=click.Path(exists=True))
-@click.argument('output_filepath', type=click.Path())
-def main(input_filepath, output_filepath):
-    """ Runs data processing scripts to turn raw data from (../raw) into
-        cleaned data ready to be analyzed (saved in ../processed).
-    """
-    logger = logging.getLogger(__name__)
-    logger.info('making final data set from raw data')
+def prepare_data():
+    fake = pd.read_csv(os.path.join(path, "Fake.csv")).drop('date', axis=1)
+    fake["class"] = "Fake"
 
+    real = pd.read_csv(os.path.join(path, "True.csv")).drop('date', axis=1)
+    real["class"] = "Real"
 
-if __name__ == '__main__':
-    log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(level=logging.INFO, format=log_fmt)
+    df = pd.concat([real, fake], sort=False).drop("subject", axis=1)
+    return df
 
-    # not used in this stub but often useful for finding various files
-    project_dir = Path(__file__).resolve().parents[2]
-
-    # find .env automagically by walking up directories until it's found, then
-    # load up the .env entries as environment variables
-    load_dotenv(find_dotenv())
-
-    main()
+def train_test_prepare(df):
+    X,y = df.drop(["class"],axis=1),df["class"]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33)
+    return X_train, X_test, y_train, y_test
